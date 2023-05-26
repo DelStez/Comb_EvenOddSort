@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using ZedGraph;
 
 namespace CombEvenOddSort
 {
@@ -20,10 +21,26 @@ namespace CombEvenOddSort
         }
         string copyFileName1 = "CombSort.txt";
         string copyFileName2 = "EvenSort.txt";
-        int swapping = 0; int comprassion = 0;
+        int swapping = 0; int comprassion = 0; int swapping1 = 0; int comprassion2 = 0;
         public List<double> numb = new List<double>();
-        
-        
+
+        private void DrawTimeSize(double size1,double time1, double time2, GraphPane pane)
+        {
+            Random rnd = new Random ();
+            pane.CurveList.Clear ();
+            PointPairList list = new PointPairList ();
+            PointPairList list2 = new PointPairList ();
+            double ymax = ( time1 + 10 + time2 + 10) / 2;
+            // Заполняем список точек
+            list.Add (size1, time1);
+            list2.Add (size1, time2);
+
+            // Создадим кривую
+            pane.AddCurve ("", list, Color.Blue, SymbolType.None);
+            pane.AddCurve ("", list2, Color.Red, SymbolType.None);
+            
+        }
+
         private void Load_Click(object sender, EventArgs e)
         {
             Cleaning();
@@ -122,6 +139,7 @@ namespace CombEvenOddSort
             List<double> result = сombSort(numb);
             var spendtime = DateTime.Now - Start;
             
+            
             textBox3.Text = "";
             foreach (int n in result)
             {
@@ -130,7 +148,9 @@ namespace CombEvenOddSort
             label5.Text = "Время:   " + spendtime.TotalMilliseconds + " мс";
             label6.Text = "Кол-во перестановок: " + swapping.ToString();;
             label7.Text = "Кол-во сравнений: " + comprassion.ToString();
-            
+            var spendTimeForOne = spendtime;
+            var size =
+   
             numb = preStart(copyFileName2);
             swapping = 0; comprassion = 0;
             Start = DateTime.Now;
@@ -144,7 +164,15 @@ namespace CombEvenOddSort
             label10.Text = "Время:   " + spendtime.TotalMilliseconds + " мс";
             label9.Text = "Кол-во перестановок: " + swapping.ToString();;
             label8.Text = "Кол-во сравнений: " + comprassion.ToString();
-
+            MasterPane masterPane = zedGraphControl1.MasterPane;
+            masterPane.PaneList.Clear ();
+            GraphPane pane = new GraphPane ();
+            DrawTimeSize((double)result.Count, spendTimeForOne.TotalMilliseconds, spendtime.TotalMilliseconds, pane);
+            masterPane.Add (pane);
+            zedGraphControl1.AxisChange ();
+            zedGraphControl1.Invalidate ();
+            
+            
         }
         
         private void Cleaning()
@@ -210,8 +238,8 @@ namespace CombEvenOddSort
                 {
                     if (array[i] > array[i + 1])
                     {
-                        comprassion++;
-                        swapping++;
+                        comprassion2++;
+                        swapping1++;
                         double temp = array[i];
                         array[i] = array[i + 1];
                         array[i + 1] = temp;
