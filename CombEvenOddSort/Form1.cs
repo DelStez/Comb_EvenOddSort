@@ -19,31 +19,42 @@ namespace CombEvenOddSort
             InitializeComponent();
             button2.Enabled = false;
         }
-        string copyFileName1 = "CombSort.txt";
-        string copyFileName2 = "EvenSort.txt";
         int swapping = 0; int comprassion = 0; int swapping1 = 0; int comprassion2 = 0;
         public List<double> numb = new List<double>();
+        public List<string> FilesPath = new List<string>();
+        public PointPairList list = new PointPairList ();
+        public PointPairList list2 = new PointPairList ();
+        public PointPairList list3 = new PointPairList ();
+        public PointPairList list4 = new PointPairList ();
+        public PointPairList list5 = new PointPairList ();
+        public PointPairList list6  = new PointPairList ();
+        public List<double> sizes = new List<double>();
+        public List<double> times1 = new List<double>();
+        public List<double> times2 = new List<double>();
+        public List<double> swapping_List = new List<double>();
+        public List<double> swapping2_List = new List<double>();
+        public List<double> comprassion_List = new List<double>();
+        public List<double> comprassion2_List = new List<double>();
 
-        private void DrawTimeSize(double size1,double time1, double time2, GraphPane pane)
+        public void DrawTimeSize(double size1, double time1, double time2, GraphPane pane, PointPairList x, PointPairList y, string text, string text1)
         {
             Random rnd = new Random ();
             pane.CurveList.Clear ();
-            PointPairList list = new PointPairList ();
-            PointPairList list2 = new PointPairList ();
-            double ymax = ( time1 + 10 + time2 + 10) / 2;
+            double ymax = ( (time1 * 1000) + 10 + (time2 * 1000) + 10) / 2;
             // Заполняем список точек
-            list.Add (size1, time1);
-            list2.Add (size1, time2);
-
+            x.Add (size1, time1 * 1000);
+            y.Add (size1, time2 * 1000);
             // Создадим кривую
-            pane.AddCurve ("", list, Color.Blue, SymbolType.None);
-            pane.AddCurve ("", list2, Color.Red, SymbolType.None);
-            
+            pane.AddCurve (text, x, Color.Blue, SymbolType.Circle);
+            pane.AddCurve (text1, y, Color.Red, SymbolType.Diamond);
+            pane.Legend.IsVisible = true;
+
         }
 
         private void Load_Click(object sender, EventArgs e)
         {
             Cleaning();
+            textBox2.Clear();
             button2.Enabled = true;
             OpenFileDialog openFileDialog1 = new OpenFileDialog();
 
@@ -51,38 +62,24 @@ namespace CombEvenOddSort
             openFileDialog1.FilterIndex = 1;
             openFileDialog1.RestoreDirectory = true;
 
-            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Multiselect = true;
+            FilesPath.Clear();
+            
+
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
-                try
+                foreach (string fileName in openFileDialog.FileNames)
                 {
-                    string fileContent = File.ReadAllText(openFileDialog1.FileName);
-                    CheckingAllNumber(openFileDialog1.FileName);
-                    button2.Enabled = true;
-                    //создание копии файла
-                    using (StreamReader reader = new StreamReader(openFileDialog1.FileName))
+                    FilesPath.Add(fileName);
+                    textBox2.Text += fileName + ":\r\n";
+                    string content = File.ReadAllText(fileName);
+                    string[] texfile = content.Split(new string[] { "\n", " ", "\0" }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (string n in texfile)
                     {
-                        
-                        // Открыть два новых файла для записи
-                        using (StreamWriter writer1 = new StreamWriter(copyFileName1))
-                        using (StreamWriter writer2 = new StreamWriter(copyFileName2))
-                        {
-                            // Считывать поочередно каждую строку из исходного файла и записывать ее в оба новых файла
-                            string line;
-                            while ((line = reader.ReadLine()) != null)
-                            {
-                                writer1.WriteLine(line);
-                                writer2.WriteLine(line);
-                            }
-                        }
-                    }
-                    textBox1.Text = openFileDialog1.FileName;
-                    textBox2.Text = fileContent;
+                        textBox2.Text += n.ToString() + "\r\n";
+                    } 
                     
-                    
-                }
-                catch (IOException ex)
-                {
-                    MessageBox.Show("Ошибка чтения файла: " + ex.Message);
                 }
             }
         }
@@ -116,7 +113,7 @@ namespace CombEvenOddSort
         private List<double> preStart(string FileName)
         {
             //
-            string content = File.ReadAllText(copyFileName1).Replace("\r\n", "");
+            string content = File.ReadAllText(FileName);
             string[] texfile = content.Split(new string[] { "\n", " ", "\0" }, StringSplitOptions.RemoveEmptyEntries);
             foreach (string Line in texfile)
             {
@@ -132,124 +129,174 @@ namespace CombEvenOddSort
 
         private void start_Click(object sender, EventArgs e)
         {
-            List<double> numb= preStart(copyFileName1);
-            
-            swapping = 0; comprassion = 0;
-            var Start = DateTime.Now;
-            List<double> result = сombSort(numb);
-            var spendtime = DateTime.Now - Start;
-            
-            
-            textBox3.Text = "";
-            foreach (int n in result)
+            Cleaning();
+            foreach (var path in FilesPath)
             {
-                textBox3.Text += n.ToString() + "\r\n";
-            } 
-            label5.Text = "Время:   " + spendtime.TotalMilliseconds + " мс";
-            label6.Text = "Кол-во перестановок: " + swapping.ToString();;
-            label7.Text = "Кол-во сравнений: " + comprassion.ToString();
-            var spendTimeForOne = spendtime;
-            var size =
-   
-            numb = preStart(copyFileName2);
-            swapping = 0; comprassion = 0;
-            Start = DateTime.Now;
-            result = OESort(numb);
-            spendtime = DateTime.Now - Start;
-            textBox4.Text = "";
-            foreach (int n in result)
-            {
-                textBox4.Text += n.ToString() + "\r\n";
+                List<double> numb = preStart(path);
+                sizes.Add(numb.Count);
+                textBox1.Text += path + ":\r\n";
+                var Start = DateTime.Now;
+                List<double> result = сombSort(numb);
+                var spendtime = DateTime.Now - Start;
+                times1.Add(spendtime.TotalMilliseconds);
+                textBox3.Text += path + ":\r\n";
+                foreach (int n in result)
+                {
+                    textBox3.Text += n.ToString() + "\r\n";
+                }
+                swapping_List.Add(swapping);
+                comprassion_List.Add(comprassion);
+                numb.Clear();
+                textBox1.Text += "Расческа:" + "\r\n";
+                textBox1.Text += "Время:   " + spendtime.Milliseconds + " мс" + "\r\n";
+                textBox1.Text += "Кол-во перестановок: " + swapping.ToString() + ":\r\n";
+                textBox1.Text += "Кол-во сравнений: " + comprassion.ToString() + ":\r\n";
+                
+                
+                
+                numb= preStart(path);
+                var spendTimeForOne = spendtime;
+                Start = DateTime.Now;
+                result = EvenOddSort(numb);
+                spendtime = DateTime.Now - Start;
+                textBox4.Text += path +":\r\n";
+                foreach (int n in result)
+                {
+                    textBox4.Text += n.ToString() + "\r\n";
+                }
+                times2.Add(spendtime.TotalMilliseconds);
+                swapping2_List.Add(swapping1);
+                comprassion2_List.Add(comprassion2);
+                numb.Clear();
+                textBox1.Text += "Чет-нечет:" + "\r\n";
+                textBox1.Text += "Время:   " + spendtime.Milliseconds + " мс" + "\r\n";
+                textBox1.Text += "Кол-во перестановок: " + swapping1.ToString() + "\r\n";
+                textBox1.Text += "Кол-во сравнений: " + comprassion2.ToString() + "\r\n";
+  
             }
-            label10.Text = "Время:   " + spendtime.TotalMilliseconds + " мс";
-            label9.Text = "Кол-во перестановок: " + swapping.ToString();;
-            label8.Text = "Кол-во сравнений: " + comprassion.ToString();
             MasterPane masterPane = zedGraphControl1.MasterPane;
+            MasterPane masterPane1 = zedGraphControl2.MasterPane;
+            MasterPane masterPane2 = zedGraphControl3.MasterPane;
+            
             masterPane.PaneList.Clear ();
+            masterPane1.PaneList.Clear ();
+            masterPane2.PaneList.Clear ();
+            
             GraphPane pane = new GraphPane ();
-            DrawTimeSize((double)result.Count, spendTimeForOne.TotalMilliseconds, spendtime.TotalMilliseconds, pane);
+            GraphPane pane1 = new GraphPane ();
+            GraphPane pane2 = new GraphPane ();
+            
+            for (int i = 0; i < sizes.Count; i++)
+            {
+                DrawTimeSize(sizes[i], times1[i], times2[i], pane, list, list2, "Расческа", "Чет-Нечет");
+                DrawTimeSize(sizes[i], swapping_List[i], swapping2_List[i], pane1,  list3, list4, "Расческа", "Чет-Нечет");
+                DrawTimeSize(sizes[i], comprassion_List[i], comprassion2_List[i], pane2,  list5, list6, "Расческа", "Чет-Нечет");
+            }
             masterPane.Add (pane);
+            masterPane1.Add (pane1);
+            masterPane2.Add (pane2);
+            
             zedGraphControl1.AxisChange ();
+            zedGraphControl2.AxisChange ();
+            zedGraphControl3.AxisChange ();
+            
             zedGraphControl1.Invalidate ();
-            
-            
+            zedGraphControl2.Invalidate ();
+            zedGraphControl3.Invalidate ();
         }
         
         private void Cleaning()
         {
             textBox1.Clear();
-            textBox2.Clear();
             textBox3.Clear();
             textBox4.Clear();
-            numb.Clear();
-            label5.Text = "Время:   ";
-            label6.Text = "Кол-во перестановок:";
-            label7.Text = "Кол-во сравнений:";
-            label10.Text = "Время:   ";
-            label9.Text = "Кол-во перестановок:";
-            label8.Text = "Кол-во сравнений:";
-
+            textBox1.Text = "";
+            textBox3.Text = "";
+            textBox4.Text = "";
+            swapping = 0;
+            comprassion = 0; 
+            swapping1 = 0;
+            comprassion2 = 0;
+            list.Clear(); list3.Clear(); list4.Clear(); list4.Clear(); list5.Clear(); list6.Clear();
+            numb.Clear(); sizes.Clear(); times1.Clear(); times2.Clear(); swapping_List.Clear(); swapping2_List
+                .Clear(); comprassion_List.Clear(); comprassion2_List.Clear();
+            
         }
         public  List<double> сombSort( List<double> array)
         {
             int length = array.Count;
-            int gap = length;
+            double gap = length;
             double shrink = 1.3;
+            bool sorted = true;
+
+            bool swapped = true;
+
+            while (gap > 1 || swapped)
+            {
+                gap /= 1.247330950103979;
+                if (gap < 1) 
+                {
+                    gap = 1;
+                }
+                swapped = false;
+                for (int i = 0; i + gap < array.Count; i++)
+                {
+                    if (array[i] > array[i + (int)gap])
+                    {
+                        swapping++;
+                        comprassion += 2;
+                        double t = array[i];
+                        array[i] = array[i + (int)gap];
+                        array[i + (int)gap] = t;
+                        swapped = true;
+                    }
+                }
+            }
+
+            return array;
+        }
+        public List<double> EvenOddSort(List<double> arr)
+        {
             bool sorted = false;
 
             while (!sorted)
             {
-                gap = (int)(gap / shrink);
-                if (gap <= 1)
-                {
-                    comprassion++;
-                    gap = 1;
-                    sorted = true;
-                }
-
-                int i = 0;
-                while (i + gap < length)
-                {
-                    if (array[i] > array[i + gap])
-                    {
-                        comprassion++;
-                        swapping++;
-                        double temp = array[i];
-                        array[i] = array[i + gap];
-                        array[i + gap] = temp;
-                        sorted = false;
-                    }
-                    i++;
-                }
-            }
-
-            return array;
-        }
-        
-        public List<double> OESort(List<double> array)
-        {
-            bool sorted = false;
-
-            while (sorted == false)
-            {
                 sorted = true;
 
-                for (int i = 1; i <= array.Count - 2; i = i + 2)
+                // Четные элементы
+                for (int i = 0; i < arr.Count - 1; i += 2)
                 {
-                    if (array[i] > array[i + 1])
+                    if (arr[i] > arr[i + 1])
                     {
-                        comprassion2++;
-                        swapping1++;
-                        double temp = array[i];
-                        array[i] = array[i + 1];
-                        array[i + 1] = temp;
+                        Swap(arr, i, i + 1);
                         sorted = false;
                     }
                 }
-                
+
+                // Нечетные элементы
+                for (int i = 1; i < arr.Count - 1; i += 2)
+                {
+                    if (arr[i] > arr[i + 1])
+                    {
+                        Swap(arr, i, i + 1);
+                        sorted = false;
+                    }
+                }
+
+                comprassion2 += 2;
             }
 
-            return array;
+            return arr;
         }
+
+        public void Swap(List<double> arr, int i, int j)
+        {
+            swapping1++;
+            comprassion2++;
+            double temp = arr[i];
+            arr[i] = arr[j];
+            arr[j] = temp;
+        }
+        
     }
 }
